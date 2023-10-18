@@ -3,18 +3,18 @@
 
 import functools
 import redis
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 import uuid
 
 
 def count_calls(method: Callable) -> Callable:
     """Decorator to count number of calls"""
     @functools.wraps(method)    # Preserve metadata
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> Any:
         """Wrapper function to add incr functionality
            Save incr count to redis"""
         key = "{}".format(method.__qualname__)
-        call_count = args[0]._redis.incr(key)
+        call_count = args[0]._redis.incr(key)   # arg[0] is basically 'self'
         result = method(*args, **kwargs)
         return result
     return wrapper
