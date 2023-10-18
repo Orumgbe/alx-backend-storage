@@ -13,8 +13,9 @@ def count_calls(method: Callable) -> Callable:
     def wrapper(*args, **kwargs) -> Any:
         """Wrapper function to add incr functionality
            Save incr count to redis"""
-        key = "{}".format(method.__qualname__)
-        call_count = args[0]._redis.incr(key)   # arg[0] is basically 'self'
+        key = method.__qualname__
+        if isinstance(args[0]._redis, redis.Redis):
+            args[0]._redis.incr(key)   # arg[0] is basically 'self'
         result = method(*args, **kwargs)
         return result
     return wrapper
