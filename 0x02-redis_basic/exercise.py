@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
 """Writing string to redis"""
 
+import functools
 import redis
 from typing import Callable, Optional, Union
 import uuid
+
+
+def count_calls(method: Callable) -> Callable:
+    """Decorator to count number of calls"""
+    @functools.wraps(method)    # Preserve metadata
+    def wrapper(*args, **kwargs):
+        """Wrapper function to add incr functionality
+           Save incr count to redis"""
+        key = "{}".format(method.__qualname__)
+        call_count = args[0]._redis.incr(key)
+        result = method(*args, **kwargs)
+        return result
+    return wrapper
 
 
 class Cache:
@@ -13,6 +27,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Store data and generate random key"""
         rand_key = str(uuid.uuid4())
